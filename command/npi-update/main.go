@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -11,17 +12,20 @@ import (
 )
 
 func main() {
-	if len(os.Args) != 2 {
+	var dest string
+	flag.StringVar(&dest, "table", "NPI", "name of table to update")
+	flag.Parse()
+	if len(flag.Args()) != 1 {
 		fmt.Println("Usage: npi-update <sqlserver://username:password@server:port?database=dbname>")
 		os.Exit(1)
 	}
-	connectionString := os.Args[1]
+	connectionString := flag.Arg(0)
 	db, err := sql.Open("mssql", connectionString)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	u := npidb.DbUpdateKeeper{db}
+	u := npidb.DbUpdateKeeper{db, fmt.Sprintf("%s_Update", dest)}
 	lastDate, err := npidb.LastUpdate(u)
 	if err != nil {
 		log.Fatal(err)
@@ -33,7 +37,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = npidb.WriteCsvToDb(csv, db, "NPI", "NPI")
+	err = npidb.MergeCsvToDb(csv, db, dest, "NPI")
 	if err != nil {
 		log.Fatal(err)
 	}
