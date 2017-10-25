@@ -21,7 +21,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	lastDate, err := npidb.LastUpdate(db)
+	u := npidb.DbUpdateKeeper{db}
+	lastDate, err := npidb.LastUpdate(u)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -38,5 +39,8 @@ func main() {
 	}
 
 	fmt.Println("Recording updates")
-	npidb.RecordUpdate(db, endDate)
+	err = npidb.RecordUpdate(u, endDate)
+	if err != nil {
+		log.Fatalf("Failed to record last update in NPI_Update table: %s", err)
+	}
 }
