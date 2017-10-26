@@ -21,9 +21,12 @@ func NextUrl(after time.Time) (updateFile string, endDate time.Time) {
 }
 
 // Fetch an NPI weekly update zip file and return an io.Reader for the csv file
-// within
+// within.  File can be fetched from remote host or using file:// URI.
 func GetCSV(url string) (csvReader io.Reader, err error) {
-	resp, err := http.Get(url)
+	t := &http.Transport{}
+	t.RegisterProtocol("file", http.NewFileTransport(http.Dir("/")))
+	c := &http.Client{Transport: t}
+	resp, err := c.Get(url)
 	if err != nil {
 		return
 	}

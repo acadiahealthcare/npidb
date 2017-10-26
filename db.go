@@ -2,6 +2,7 @@ package npidb
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 )
 
@@ -11,11 +12,12 @@ type UpdateKeeper interface {
 }
 
 type DbUpdateKeeper struct {
-	DB *sql.DB
+	DB        *sql.DB
+	TableName string
 }
 
 func (u DbUpdateKeeper) GetLastUpdate() (lastDate time.Time, err error) {
-	err = u.DB.QueryRow("SELECT TOP 1 end_date FROM NPI_Update ORDER BY end_date DESC").Scan(&lastDate)
+	err = u.DB.QueryRow(fmt.Sprintf("SELECT TOP 1 end_date FROM %s ORDER BY end_date DESC", u.TableName)).Scan(&lastDate)
 	return
 }
 
@@ -34,7 +36,7 @@ func LastUpdate(u UpdateKeeper) (lastDate time.Time, err error) {
 }
 
 func (u DbUpdateKeeper) RecordUpdate(t time.Time) (err error) {
-	_, err = u.DB.Exec("INSERT INTO NPI_Update (end_date) VALUES (?)", t)
+	_, err = u.DB.Exec(fmt.Sprintf("INSERT INTO %s (end_date) VALUES (?)", u.TableName), t)
 	return
 }
 
